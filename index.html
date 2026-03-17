@@ -1,333 +1,1081 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>Conduit AI HQ</title>
-<link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&display=swap" rel="stylesheet">
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{background:#080c18;overflow-x:hidden;overflow-y:auto;font-family:'Press Start 2P',monospace;color:#e0e6ed;-webkit-font-smoothing:none;image-rendering:pixelated}
-.hud{position:fixed;top:0;left:0;right:0;height:36px;background:rgba(8,12,24,0.95);border-bottom:2px solid #1a2040;display:flex;align-items:center;padding:0 10px;z-index:100;gap:6px}
-.hud-logo{font-size:7px;color:#00e5ff;letter-spacing:1px}
-.hud-dot{width:5px;height:5px;border-radius:50%;background:#00e676;box-shadow:0 0 4px #00e676;margin-left:auto}
-.hud-agents{font-size:6px;color:#8892a4;margin-left:4px}
-.hud-time{font-size:6px;color:#8892a4;margin-left:auto}
-.scene{padding-top:40px;display:flex;flex-direction:column;align-items:center;min-height:100vh;background:linear-gradient(180deg,#080c18 0%,#0c1428 30%,#101830 60%,#141c35 100%)}
-.stars{position:fixed;top:0;left:0;right:0;height:200px;pointer-events:none;z-index:0}
-.star{position:absolute;background:#fff;border-radius:50%}
-.building-area{position:relative;width:340px;margin:10px auto 0;z-index:1}
-.roof{height:24px;background:#1c2240;border:2px solid #2a3258;border-bottom:none;border-radius:4px 4px 0 0;display:flex;align-items:center;justify-content:center;position:relative}
-.roof-text{font-size:6px;color:#00e5ff;letter-spacing:2px;text-shadow:0 0 8px rgba(0,229,255,0.4)}
-.antenna{position:absolute;top:-16px;left:50%;width:2px;height:16px;background:#3a4060;transform:translateX(-50%)}
-.antenna-light{position:absolute;top:-20px;left:50%;width:4px;height:4px;background:#ff1744;border-radius:50%;transform:translateX(-50%);animation:blink 1.5s infinite}
-@keyframes blink{0%,100%{opacity:1}50%{opacity:0.15}}
-.floor{height:72px;background:#161c30;border-left:2px solid #2a3258;border-right:2px solid #2a3258;position:relative;overflow:hidden;border-bottom:2px solid #222848}
-.floor:nth-child(odd){background:#181e34}
-.floor-label{position:absolute;top:4px;left:6px;font-size:5px;color:#00e5ff;letter-spacing:1px;z-index:5}
-.floor-windows{position:absolute;top:10px;left:8px;right:8px;display:flex;gap:8px;flex-wrap:wrap}
-.window{width:18px;height:22px;background:#0d1a35;border:1px solid #1a2a50;position:relative}
-.window::before{content:'';position:absolute;top:50%;left:0;right:0;height:1px;background:#1a2a50}
-.window::after{content:'';position:absolute;left:50%;top:0;bottom:0;width:1px;background:#1a2a50}
-.window.lit{background:#1a3a6a;border-color:#2a5090;box-shadow:inset 0 0 6px rgba(46,125,219,0.3)}
-.window.warm{background:#2a2a1a;border-color:#4a4020;box-shadow:inset 0 0 6px rgba(200,180,80,0.3)}
-.desk-area{position:absolute;bottom:4px;left:10px;right:10px;height:32px}
-.desk{position:absolute;bottom:0;width:32px;height:10px;background:#2a3050;border:1px solid #3a4060;border-bottom:2px solid #3a4060}
-.desk-monitor{position:absolute;bottom:10px;width:10px;height:8px;background:#1a3060;border:1px solid #2a4a80;border-radius:1px 1px 0 0}
-.desk-stand{position:absolute;bottom:8px;width:4px;height:3px;background:#3a4060}
-.chair{position:absolute;bottom:0;width:10px;height:14px;background:#2a2040;border:1px solid #3a3060;border-radius:2px 2px 0 0}
-.bookshelf{position:absolute;bottom:0;width:10px;height:40px;background:#3a2820;border:1px solid #4a3830}
-.bookshelf-shelf{position:absolute;left:0;right:0;height:1px;background:#4a3830}
-.book{position:absolute;width:3px;border-radius:0}
-.server-rack{position:absolute;bottom:0;width:14px;height:40px;background:#1a1a2a;border:1px solid #2a2a40}
-.server-led{position:absolute;width:2px;height:2px;border-radius:50%}
-.led-green{background:#00e676;box-shadow:0 0 2px #00e676}
-.led-red{background:#ff1744;box-shadow:0 0 2px #ff1744}
-.conf-table{position:absolute;bottom:6px;left:50%;transform:translateX(-50%);width:100px;height:14px;background:#3a2820;border:1px solid #4a3830;border-radius:3px}
-.conf-chair{position:absolute;width:8px;height:8px;background:#2a2040;border:1px solid #3a3060;border-radius:1px}
-.agent{position:absolute;bottom:4px;z-index:10;cursor:pointer;transition:left 2s ease-in-out}
-.agent:hover{transform:scale(1.4);z-index:20}
-.agent:hover .agent-bubble{opacity:1}
-.pixel-person{position:relative;width:14px;height:22px;image-rendering:pixelated}
-.p-hair{position:absolute;top:0;left:3px;width:8px;height:3px;border-radius:1px 1px 0 0}
-.p-head{position:absolute;top:2px;left:3px;width:8px;height:7px;border-radius:1px}
-.p-eye-l{position:absolute;top:5px;left:5px;width:2px;height:2px;background:#fff}
-.p-eye-r{position:absolute;top:5px;left:8px;width:2px;height:2px;background:#fff}
-.p-body{position:absolute;top:9px;left:2px;width:10px;height:7px;border-radius:1px}
-.p-pants{position:absolute;top:16px;left:2px;width:10px;height:3px}
-.p-foot-l{position:absolute;top:19px;left:2px;width:4px;height:3px;background:#1a1a2a;border-radius:0 0 1px 1px}
-.p-foot-r{position:absolute;top:19px;left:8px;width:4px;height:3px;background:#1a1a2a;border-radius:0 0 1px 1px}
-.agent-name{position:absolute;bottom:-10px;left:50%;transform:translateX(-50%);font-size:4px;color:#8892a4;white-space:nowrap;letter-spacing:0.5px}
-.agent-bubble{position:absolute;bottom:26px;left:50%;transform:translateX(-50%);background:#0c1020;border:1px solid #00e5ff;border-radius:3px;padding:2px 5px;font-size:4px;color:#00e5ff;white-space:nowrap;max-width:140px;overflow:hidden;text-overflow:ellipsis;opacity:0;transition:opacity 0.3s;pointer-events:none;z-index:20}
-.agent.working .agent-bubble{opacity:1}
-.work-dot{position:absolute;top:-2px;right:-2px;width:5px;height:5px;border-radius:50%;background:#00e676;box-shadow:0 0 4px #00e676;opacity:0;transition:opacity 0.3s}
-.agent.working .work-dot{opacity:1}
-.ground{height:36px;background:#1a1c28;border:2px solid #2a3258;border-top:none;border-radius:0 0 4px 4px;position:relative;display:flex;align-items:flex-end;justify-content:center}
-.entrance{width:36px;height:28px;background:#0c1020;border:1px solid #2a3258;border-bottom:none;border-radius:3px 3px 0 0;position:relative;display:flex;align-items:center;justify-content:center}
-.entrance-text{font-size:3px;color:#505868;letter-spacing:1px}
-.door-l,.door-r{position:absolute;bottom:0;width:8px;height:18px;background:#141828;border:1px solid #2a3258}
-.door-l{left:5px}.door-r{right:5px}
-.door-handle{position:absolute;top:50%;width:2px;height:2px;background:#4a5070;border-radius:50%}
-.door-l .door-handle{right:2px}.door-r .door-handle{left:2px}
-.tree{position:absolute;bottom:0}
-.tree-crown{width:18px;height:18px;background:#1a4030;border-radius:50%;border:1px solid #2a5540}
-.tree-trunk{width:4px;height:8px;background:#3a2a20;margin:0 auto}
-.feed-bar{position:fixed;bottom:0;left:0;right:0;background:rgba(8,12,24,0.95);border-top:2px solid #1a2040;z-index:100;padding:4px 8px;max-height:80px;overflow-y:auto}
-.feed-title{font-size:5px;color:#00e5ff;letter-spacing:2px;margin-bottom:4px}
-.feed-item{font-size:5px;color:#8892a4;padding:2px 0;border-bottom:1px solid rgba(26,32,64,0.5);line-height:1.6}
-.feed-item b{color:#00e5ff;font-weight:normal}
-.feed-item .t{color:#505868;font-size:4px;margin-left:4px}
-.panel{position:fixed;top:0;right:0;width:260px;height:100%;background:rgba(12,16,28,0.97);border-left:2px solid #2a3258;transform:translateX(100%);transition:transform 0.3s;z-index:200;overflow-y:auto;padding:12px}
-.panel.open{transform:translateX(0)}
-.panel-close{position:absolute;top:8px;right:8px;width:20px;height:20px;background:none;border:1px solid #2a3258;color:#8892a4;font-size:8px;cursor:pointer;display:flex;align-items:center;justify-content:center;border-radius:2px;font-family:'Press Start 2P'}
-.panel-name{font-size:8px;letter-spacing:1px;margin-bottom:4px}
-.panel-role{font-size:5px;color:#8892a4;margin-bottom:12px}
-.panel-sec{font-size:4px;color:#505868;letter-spacing:2px;margin:10px 0 6px;border-bottom:1px solid #1a2040;padding-bottom:4px}
-.panel-stat{display:flex;justify-content:space-between;font-size:6px;padding:4px 0}
-.panel-stat span:last-child{color:#00e676}
-.panel-log{font-size:5px;color:#8892a4;padding:4px 0;border-bottom:1px solid rgba(26,32,64,0.3);line-height:1.5}
-.idle-anim{animation:idle 2s ease-in-out infinite}
-@keyframes idle{0%,100%{transform:translateY(0)}50%{transform:translateY(-2px)}}
-@media(max-width:360px){.building-area{width:310px}}
-</style>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Conduit AI Headquarters</title>
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            background: #1a237e;
+            font-family: 'Courier New', monospace;
+            overflow: hidden;
+            image-rendering: pixelated;
+            image-rendering: -moz-crisp-edges;
+            image-rendering: crisp-edges;
+        }
+
+        #gameContainer {
+            width: 100vw;
+            height: 100vh;
+            position: relative;
+        }
+
+        #hud {
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 45px;
+            background: linear-gradient(180deg, rgba(26,35,126,0.95) 0%, rgba(13,18,63,0.95) 100%);
+            color: #00e5ff;
+            padding: 0 15px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            z-index: 1000;
+            font-size: 11px;
+            border-bottom: 2px solid #00e5ff;
+            box-shadow: 0 2px 10px rgba(0,229,255,0.3);
+        }
+
+        .hud-section {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .hud-title {
+            font-weight: bold;
+            font-size: 14px;
+            text-shadow: 0 0 8px #00e5ff;
+        }
+
+        .status-dot {
+            width: 8px;
+            height: 8px;
+            background: #00e676;
+            border-radius: 50%;
+            animation: pulse 2s infinite;
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; }
+            50% { opacity: 0.5; }
+        }
+
+        #activityFeed {
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            right: 0;
+            height: 65px;
+            background: linear-gradient(0deg, rgba(26,35,126,0.95) 0%, rgba(13,18,63,0.95) 100%);
+            color: #00e5ff;
+            font-size: 9px;
+            padding: 8px 15px;
+            overflow: hidden;
+            border-top: 2px solid #00e5ff;
+            box-shadow: 0 -2px 10px rgba(0,229,255,0.3);
+            z-index: 1000;
+        }
+
+        .feed-title {
+            color: #00e5ff;
+            font-weight: bold;
+            margin-bottom: 4px;
+            text-shadow: 0 0 4px #00e5ff;
+        }
+
+        .feed-content {
+            height: 42px;
+            overflow: hidden;
+            color: #b3e5fc;
+        }
+
+        .feed-item {
+            margin-bottom: 2px;
+            white-space: nowrap;
+            animation: scrollUp 0.5s ease-in-out;
+        }
+
+        @keyframes scrollUp {
+            from { transform: translateY(20px); opacity: 0; }
+            to { transform: translateY(0); opacity: 1; }
+        }
+
+        .no-data {
+            color: #64b5f6;
+            font-style: italic;
+        }
+
+        .agent-popup {
+            position: absolute;
+            background: linear-gradient(135deg, rgba(26,35,126,0.98) 0%, rgba(13,18,63,0.98) 100%);
+            color: #00e5ff;
+            border: 2px solid #00e5ff;
+            border-radius: 8px;
+            padding: 15px;
+            width: 220px;
+            min-height: 160px;
+            z-index: 2000;
+            display: none;
+            font-size: 10px;
+            box-shadow: 0 4px 20px rgba(0,229,255,0.4);
+            backdrop-filter: blur(10px);
+        }
+
+        .popup-close {
+            position: absolute;
+            top: 5px;
+            right: 10px;
+            cursor: pointer;
+            color: #ff4081;
+            font-size: 18px;
+            font-weight: bold;
+        }
+
+        .popup-close:hover {
+            color: #ff6ec7;
+        }
+
+        @media (max-width: 768px) {
+            #hud {
+                height: 40px;
+                font-size: 10px;
+                padding: 0 10px;
+            }
+            .hud-title {
+                font-size: 12px;
+            }
+            #activityFeed {
+                height: 55px;
+                font-size: 8px;
+                padding: 6px 10px;
+            }
+            .agent-popup {
+                width: 200px;
+                min-height: 140px;
+            }
+        }
+    </style>
 </head>
 <body>
+    <div id="gameContainer">
+        <div id="hud">
+            <div class="hud-section">
+                <span class="hud-title">CONDUIT AI HQ</span>
+            </div>
+            <div class="hud-section">
+                <div class="status-dot"></div>
+                <span id="agentCount">6 Agents Online</span>
+            </div>
+            <div class="hud-section">
+                <span id="currentTime">--:--</span>
+            </div>
+        </div>
 
-<div class="hud">
-  <span class="hud-logo">CONDUIT AI HQ</span>
-  <div class="hud-dot"></div>
-  <span class="hud-agents">6 ONLINE</span>
-  <span class="hud-time" id="clock">--:--</span>
-</div>
+        <div id="activityFeed">
+            <div class="feed-title">LIVE ACTIVITY FEED</div>
+            <div class="feed-content" id="feedContent">
+                <div class="no-data">Connecting to agent network...</div>
+            </div>
+        </div>
 
-<div class="scene">
-  <div class="stars" id="stars"></div>
-  <div class="building-area">
-    <div class="antenna-light"></div>
-    <div class="antenna"></div>
-    <div class="roof"><span class="roof-text">CONDUIT AI</span></div>
-    <div id="floors"></div>
-    <div class="ground">
-      <div class="tree" style="position:absolute;left:10px;bottom:4px"><div class="tree-crown"></div><div class="tree-trunk"></div></div>
-      <div class="entrance"><span class="entrance-text">ENTER</span><div class="door-l"><div class="door-handle"></div></div><div class="door-r"><div class="door-handle"></div></div></div>
-      <div class="tree" style="position:absolute;right:10px;bottom:4px"><div class="tree-crown"></div><div class="tree-trunk"></div></div>
+        <div id="agentPopup" class="agent-popup">
+            <span class="popup-close" onclick="closePopup()">×</span>
+            <div id="popupContent"></div>
+        </div>
     </div>
-  </div>
-  <div style="height:90px"></div>
-</div>
 
-<div class="feed-bar">
-  <div class="feed-title">LIVE ACTIVITY</div>
-  <div id="feed"></div>
-</div>
+    <script src="https://cdn.jsdelivr.net/npm/phaser@3.70.0/dist/phaser.min.js"></script>
+    <script>
+        // Supabase configuration
+        const SUPABASE_URL = 'https://mvuslmfjkkuizixjpkgl.supabase.co';
+        const SUPABASE_ANON_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12dXNsbWZqa2t1aXppeGpwa2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NzYyMDksImV4cCI6MjA4NTA1MjIwOX0.091TGkz2qxBMTRzz_YSRnOHBotHPFQFkWspp1pZ0vMg';
 
-<div class="panel" id="panel">
-  <button class="panel-close" onclick="closePanel()">x</button>
-  <div id="panelContent"></div>
-</div>
+        // Global variables
+        let game;
+        let agents = [];
+        let activityData = [];
+        let tasksToday = 0;
 
-<script>
-var FLOORS=[
-  {id:'ceo',label:'CEO SUITE',agents:[]},
-  {id:'board',label:'BOARDROOM',agents:[]},
-  {id:'intel',label:'INTELLIGENCE',agents:['SCOUT']},
-  {id:'content',label:'CONTENT',agents:['SAGE']},
-  {id:'outbound',label:'OUTBOUND',agents:['STRIKER']},
-  {id:'sales',label:'SALES',agents:['HUNTER','CLOSER']},
-  {id:'ops',label:'OPERATIONS',agents:['WATCHDOG']},
-];
+        // Agent definitions with exact hex colors
+        const AGENTS = {
+            HUNTER: {
+                color: 0xff9100,
+                shirtColor: '#ff9100',
+                floor: 1, // OPS
+                name: 'HUNTER',
+                role: 'Lead Generation',
+                skinColor: '#d4956a',
+                pantsColor: '#2c2c54',
+                hairColor: '#40407a',
+                shoeColor: '#1a1a1a'
+            },
+            CLOSER: {
+                color: 0xb388ff,
+                shirtColor: '#b388ff',
+                floor: 2, // SALES
+                name: 'CLOSER',
+                role: 'Sales Conversion',
+                skinColor: '#e8c4a0',
+                pantsColor: '#2c2c54',
+                hairColor: '#5f27cd',
+                shoeColor: '#1a1a1a'
+            },
+            STRIKER: {
+                color: 0x00e676,
+                shirtColor: '#00e676',
+                floor: 3, // OUTBOUND
+                name: 'STRIKER',
+                role: 'Outbound Sales',
+                skinColor: '#c49a6a',
+                pantsColor: '#2c2c54',
+                hairColor: '#2f3542',
+                shoeColor: '#1a1a1a'
+            },
+            SCOUT: {
+                color: 0x00e5ff,
+                shirtColor: '#00e5ff',
+                floor: 5, // INTEL
+                name: 'SCOUT',
+                role: 'Market Intelligence',
+                skinColor: '#d4b08a',
+                pantsColor: '#2c2c54',
+                hairColor: '#3c6382',
+                shoeColor: '#1a1a1a'
+            },
+            SAGE: {
+                color: 0xffd740,
+                shirtColor: '#ffd740',
+                floor: 4, // CONTENT
+                name: 'SAGE',
+                role: 'Content Strategy',
+                skinColor: '#d4a070',
+                pantsColor: '#2c2c54',
+                hairColor: '#f39800',
+                shoeColor: '#1a1a1a'
+            },
+            WATCHDOG: {
+                color: 0xff4081,
+                shirtColor: '#ff4081',
+                floor: 1, // OPS
+                name: 'WATCHDOG',
+                role: 'Operations Monitor',
+                skinColor: '#c8956a',
+                pantsColor: '#2c2c54',
+                hairColor: '#e55039',
+                shoeColor: '#1a1a1a'
+            }
+        };
 
-var AGENTS={
-  HUNTER:{role:'Director of Prospecting',color:'#ff9100',skin:'#d4956a',hair:'#4a3020',pants:'#3a2a1a'},
-  CLOSER:{role:'Director of Outreach',color:'#b388ff',skin:'#e8c4a0',hair:'#2a1a10',pants:'#2a2040'},
-  STRIKER:{role:'Director of Outbound',color:'#00e676',skin:'#c49a6a',hair:'#1a1a1a',pants:'#1a2a1a'},
-  SCOUT:{role:'Director of Intelligence',color:'#00e5ff',skin:'#d4b08a',hair:'#3a2a20',pants:'#1a2540'},
-  SAGE:{role:'Director of Content',color:'#ffd740',skin:'#d4a070',hair:'#5a4030',pants:'#3a3020'},
-  WATCHDOG:{role:'Director of Operations',color:'#ff4081',skin:'#8a6040',hair:'#1a1010',pants:'#2a1520'},
-};
+        // Game configuration
+        const config = {
+            type: Phaser.AUTO,
+            width: window.innerWidth,
+            height: window.innerHeight,
+            parent: 'gameContainer',
+            backgroundColor: '#1a237e',
+            scene: {
+                preload: preload,
+                create: create,
+                update: update
+            },
+            scale: {
+                mode: Phaser.Scale.RESIZE,
+                autoCenter: Phaser.Scale.CENTER_BOTH
+            },
+            render: {
+                pixelArt: true,
+                antialias: false
+            }
+        };
 
-var agentEls={}, feedEl=document.getElementById('feed');
-
-// Stars
-var starsEl=document.getElementById('stars');
-for(var i=0;i<50;i++){var s=document.createElement('div');s.className='star';var sz=Math.random()>0.7?2:1;s.style.cssText='left:'+Math.random()*100+'%;top:'+Math.random()*100+'%;width:'+sz+'px;height:'+sz+'px;opacity:'+(0.2+Math.random()*0.5);starsEl.appendChild(s)}
-
-// Build floors
-var floorsEl=document.getElementById('floors');
-FLOORS.forEach(function(fl,fi){
-  var f=document.createElement('div');
-  f.className='floor';
-  f.innerHTML='<div class="floor-label">'+fl.label+'</div>';
-  
-  // Windows
-  var whtml='<div class="floor-windows">';
-  for(var w=0;w<6;w++){
-    var cls=Math.random()>0.4?(Math.random()>0.5?'lit':'warm'):'';
-    whtml+='<div class="window '+cls+'"></div>';
-  }
-  whtml+='</div>';
-  f.innerHTML+=whtml;
-  
-  // Furniture per floor type
-  var dhtml='<div class="desk-area">';
-  if(fl.id==='ops'){
-    dhtml+='<div class="desk" style="left:20px"><div class="desk-monitor" style="left:11px"></div><div class="desk-stand" style="left:14px"></div></div>';
-    dhtml+='<div class="chair" style="left:36px"></div>';
-    dhtml+='<div class="desk" style="left:80px"><div class="desk-monitor" style="left:11px"></div></div>';
-    dhtml+='<div class="server-rack" style="right:10px"><div class="server-led led-green" style="top:6px;left:3px"></div><div class="server-led led-green" style="top:6px;left:8px"></div><div class="server-led led-red" style="top:12px;left:3px"></div><div class="server-led led-green" style="top:12px;left:8px"></div><div class="server-led led-green" style="top:18px;left:3px"></div><div class="server-led led-green" style="top:18px;left:8px"></div></div>';
-  } else if(fl.id==='sales'){
-    dhtml+='<div class="desk" style="left:20px"><div class="desk-monitor" style="left:11px"></div></div><div class="chair" style="left:36px"></div>';
-    dhtml+='<div class="desk" style="left:100px"><div class="desk-monitor" style="left:11px"></div></div><div class="chair" style="left:116px"></div>';
-    dhtml+='<div style="position:absolute;bottom:2px;right:20px;width:50px;height:8px;background:#2a2a1a;border:1px solid #3a3a2a;font-size:3px;color:#505030;display:flex;align-items:center;justify-content:center;letter-spacing:1px">SALES BOARD</div>';
-  } else if(fl.id==='outbound'){
-    dhtml+='<div class="desk" style="left:60px"><div class="desk-monitor" style="left:11px"></div></div><div class="chair" style="left:76px"></div>';
-    dhtml+='<div style="position:absolute;bottom:16px;left:20px;width:8px;height:6px;background:#2a3050;border:1px solid #3a4060;border-radius:1px"></div>';
-  } else if(fl.id==='content'){
-    dhtml+='<div class="desk" style="left:50px"><div class="desk-monitor" style="left:11px"></div></div><div class="chair" style="left:66px"></div>';
-    dhtml+='<div class="bookshelf" style="right:20px"><div class="bookshelf-shelf" style="top:10px"></div><div class="bookshelf-shelf" style="top:20px"></div><div class="bookshelf-shelf" style="top:30px"></div><div class="book" style="top:2px;left:1px;height:8px;background:#cc4444"></div><div class="book" style="top:2px;left:4px;height:7px;background:#4488cc"></div><div class="book" style="top:12px;left:1px;height:7px;background:#44aa44"></div><div class="book" style="top:12px;left:5px;height:8px;background:#cc8844"></div><div class="book" style="top:22px;left:2px;height:7px;background:#8844cc"></div></div>';
-  } else if(fl.id==='intel'){
-    dhtml+='<div class="desk" style="left:40px"><div class="desk-monitor" style="left:11px"></div></div><div class="chair" style="left:56px"></div>';
-    dhtml+='<div class="desk" style="left:120px"><div class="desk-monitor" style="left:11px"></div></div>';
-    dhtml+='<div style="position:absolute;bottom:2px;right:15px;width:40px;height:26px;background:#0d1a30;border:1px solid #1a2a50;display:flex;align-items:center;justify-content:center;font-size:3px;color:#1a3a60">MAP</div>';
-  } else if(fl.id==='board'){
-    dhtml+='<div class="conf-table"></div>';
-    for(var ch=0;ch<3;ch++){
-      dhtml+='<div class="conf-chair" style="bottom:22px;left:'+(90+ch*30)+'px"></div>';
-      dhtml+='<div class="conf-chair" style="bottom:0px;left:'+(90+ch*30)+'px"></div>';
-    }
-  } else if(fl.id==='ceo'){
-    dhtml+='<div class="desk" style="left:60px;width:40px"><div class="desk-monitor" style="left:15px"></div></div><div class="chair" style="left:80px;height:16px"></div>';
-  }
-  dhtml+='</div>';
-  f.innerHTML+=dhtml;
-  
-  // Agents
-  fl.agents.forEach(function(name,idx){
-    var ag=AGENTS[name];
-    var el=document.createElement('div');
-    el.className='agent idle-anim';
-    el.style.left=(40+idx*80)+'px';
-    el.style.animationDelay=(idx*0.3)+'s';
-    el.onclick=function(e){e.stopPropagation();openPanel(name)};
-    el.innerHTML='<div class="work-dot"></div><div class="agent-bubble" id="bub-'+name+'"></div><div class="pixel-person">'+
-      '<div class="p-hair" style="background:'+ag.hair+'"></div>'+
-      '<div class="p-head" style="background:'+ag.skin+'"></div>'+
-      '<div class="p-eye-l"></div><div class="p-eye-r"></div>'+
-      '<div class="p-body" style="background:'+ag.color+'"></div>'+
-      '<div class="p-pants" style="background:'+ag.pants+'"></div>'+
-      '<div class="p-foot-l"></div><div class="p-foot-r"></div>'+
-      '</div><div class="agent-name">'+name+'</div>';
-    f.appendChild(el);
-    agentEls[name]=el;
-  });
-  
-  floorsEl.appendChild(f);
-});
-
-// Supabase connection
-var SB_URL='https://mvuslmfjkkuizixjpkgl.supabase.co';
-var SB_KEY='eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6Im12dXNsbWZqa2t1aXppeGpwa2dsIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Njk0NzYyMDksImV4cCI6MjA4NTA1MjIwOX0.091TGkz2qxBMTRzz_YSRnOHBotHPFQFkWspp1pZ0vMg';
-var lastActivities={};
-
-async function fetchActivities(){
-  try{
-    var r=await fetch(SB_URL+'/rest/v1/workforce_activity_log?select=agent_name,action,description,created_at&order=created_at.desc&limit=20',{
-      headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
-    });
-    if(r.ok){
-      var data=await r.json();
-      // Update feed
-      feedEl.innerHTML='';
-      data.slice(0,8).forEach(function(a){
-        var t=new Date(a.created_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
-        var d=document.createElement('div');
-        d.className='feed-item';
-        d.innerHTML='<b>'+a.agent_name+'</b> '+a.description.substring(0,60)+'<span class="t">'+t+'</span>';
-        feedEl.appendChild(d);
-      });
-      // Update agent bubbles with latest activity
-      var agentLatest={};
-      data.forEach(function(a){
-        if(!agentLatest[a.agent_name]) agentLatest[a.agent_name]=a;
-      });
-      Object.keys(agentLatest).forEach(function(name){
-        var bub=document.getElementById('bub-'+name);
-        var el=agentEls[name];
-        if(bub&&el){
-          var desc=agentLatest[name].description;
-          if(desc!==lastActivities[name]){
-            bub.textContent=desc.substring(0,50);
-            el.classList.add('working');
-            lastActivities[name]=desc;
-            setTimeout(function(){el.classList.remove('working')},5000);
-          }
+        function preload() {
+            // No external assets needed - using graphics API only
         }
-      });
-    }
-  }catch(e){console.error('Supabase fetch error:',e)}
-}
 
-// Agent movement
-function moveAgents(){
-  Object.keys(agentEls).forEach(function(name){
-    var el=agentEls[name];
-    if(el&&Math.random()>0.6){
-      var cur=parseInt(el.style.left)||40;
-      var newX=Math.max(10,Math.min(280,cur+(Math.random()*60-30)));
-      el.style.left=newX+'px';
-    }
-  });
-}
+        function create() {
+            this.cameras.main.setBackgroundColor('#1a237e');
 
-// Panel
-function openPanel(name){
-  var ag=AGENTS[name];
-  var latest=lastActivities[name]||'Standing by...';
-  var html='<div class="panel-name" style="color:'+ag.color+'">'+name+'</div>';
-  html+='<div class="panel-role">'+ag.role+'</div>';
-  html+='<div class="panel-sec">STATUS</div>';
-  html+='<div class="panel-stat"><span>Status</span><span>ACTIVE</span></div>';
-  html+='<div class="panel-stat"><span>Department</span><span style="color:'+ag.color+'">'+ag.role.split(' ').pop()+'</span></div>';
-  html+='<div class="panel-sec">CURRENT TASK</div>';
-  html+='<div class="panel-log">'+latest+'</div>';
-  html+='<div class="panel-sec">RECENT ACTIVITY</div>';
-  html+='<div class="panel-log">Loading from Supabase...</div>';
-  document.getElementById('panelContent').innerHTML=html;
-  document.getElementById('panel').classList.add('open');
-  
-  // Fetch agent-specific activity
-  fetch(SB_URL+'/rest/v1/workforce_activity_log?select=description,created_at&agent_name=eq.'+name+'&order=created_at.desc&limit=5',{
-    headers:{'apikey':SB_KEY,'Authorization':'Bearer '+SB_KEY}
-  }).then(function(r){return r.json()}).then(function(data){
-    var logsHtml='';
-    data.forEach(function(a){
-      var t=new Date(a.created_at).toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
-      logsHtml+='<div class="panel-log">'+a.description.substring(0,80)+'<br><span style="color:#505868;font-size:4px">'+t+'</span></div>';
-    });
-    var secs=document.querySelectorAll('.panel-sec');
-    if(secs.length>=3){
-      var logContainer=secs[2].nextElementSibling;
-      if(logContainer) logContainer.outerHTML=logsHtml||'<div class="panel-log">No activity yet</div>';
-    }
-  }).catch(function(){});
-}
-function closePanel(){document.getElementById('panel').classList.remove('open')}
+            // Create starfield background
+            createStarfield(this);
 
-// Clock
-setInterval(function(){
-  document.getElementById('clock').textContent=new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true});
-},1000);
+            // Create the main building
+            createBuilding(this);
 
-// Init
-fetchActivities();
-setInterval(fetchActivities,30000);
-setInterval(moveAgents,4000);
+            // Create all agents
+            createAgents(this);
 
-// Initial feed message
-var initMsg=document.createElement('div');
-initMsg.className='feed-item';
-initMsg.innerHTML='<b>SYSTEM</b> Connecting to workforce... <span class="t">now</span>';
-feedEl.appendChild(initMsg);
-</script>
+            // Start real-time data fetching
+            startDataFetching();
+
+            // Initialize HUD
+            updateHUD();
+
+            // Handle clicks for popup dismissal
+            this.input.on('pointerdown', (pointer, currentlyOver) => {
+                if (currentlyOver.length === 0) {
+                    closePopup();
+                }
+            });
+
+            // Handle window resize
+            this.scale.on('resize', (gameSize) => {
+                this.cameras.main.setViewport(0, 0, gameSize.width, gameSize.height);
+                this.scene.restart();
+            });
+        }
+
+        function update() {
+            // Animate agents with subtle movements
+            agents.forEach(agent => {
+                if (agent.sprite && agent.sprite.active) {
+                    // Idle breathing animation
+                    const time = Date.now() * 0.001;
+                    agent.sprite.y = agent.baseY + Math.sin(time + agent.bobOffset) * 0.5;
+
+                    // Random movement occasionally
+                    if (Math.random() < 0.0005) {
+                        moveAgentRandomly(agent);
+                    }
+                }
+            });
+        }
+
+        function createStarfield(scene) {
+            // Create animated starfield background
+            for (let i = 0; i < 60; i++) {
+                const star = scene.add.circle(
+                    Math.random() * config.width,
+                    Math.random() * (config.height - 110), // Avoid HUD areas
+                    Math.random() > 0.5 ? 1 : 0.5,
+                    0xffffff,
+                    Math.random() * 0.8 + 0.2
+                );
+
+                // Twinkling animation
+                scene.tweens.add({
+                    targets: star,
+                    alpha: { from: 0.2, to: 1 },
+                    duration: 2000 + Math.random() * 3000,
+                    repeat: -1,
+                    yoyo: true,
+                    ease: 'Sine.easeInOut'
+                });
+            }
+        }
+
+        function createBuilding(scene) {
+            const centerX = config.width / 2;
+            const maxWidth = Math.min(375, config.width - 40); // Mobile-first, max 375px
+            const buildingWidth = maxWidth;
+            const floorHeight = 70;
+            const totalFloors = 8;
+            const totalHeight = floorHeight * totalFloors;
+            const buildingY = config.height - 120 - totalHeight; // Leave space for activity feed
+
+            // Main building structure
+            const building = scene.add.graphics();
+
+            // Building main body with depth
+            building.fillStyle(0x283593);
+            building.fillRect(centerX - buildingWidth/2, buildingY, buildingWidth, totalHeight);
+
+            // 3D depth effect - left side
+            building.fillStyle(0x1e2749);
+            building.fillRect(centerX - buildingWidth/2 - 6, buildingY + 6, 6, totalHeight);
+
+            // 3D depth effect - top
+            building.fillStyle(0x3949ab);
+            building.fillRect(centerX - buildingWidth/2 - 6, buildingY, buildingWidth + 6, 6);
+
+            // Clean building outline
+            building.lineStyle(1, 0x5c6bc0);
+            building.strokeRect(centerX - buildingWidth/2, buildingY, buildingWidth, totalHeight);
+
+            // Create each floor with precise details
+            const floorNames = ['LOBBY', 'OPS', 'SALES', 'OUTBOUND', 'CONTENT', 'INTEL', 'BOARD', 'CEO'];
+
+            for (let floor = 0; floor < totalFloors; floor++) {
+                createFloor(scene, centerX, buildingY + floor * floorHeight, buildingWidth, floorHeight, floor, floorNames[floor]);
+            }
+
+            // Rooftop elements
+            createRooftop(scene, centerX, buildingY - 30, buildingWidth);
+
+            // Ground level and entrance
+            createEntrance(scene, centerX, buildingY + totalHeight, buildingWidth);
+        }
+
+        function createFloor(scene, centerX, y, width, height, floorNum, floorName) {
+            const graphics = scene.add.graphics();
+
+            // Clean 1px floor separator line
+            if (floorNum > 0) {
+                graphics.lineStyle(1, 0x5c6bc0);
+                graphics.lineBetween(centerX - width/2, y, centerX + width/2, y);
+            }
+
+            // Floor label with better positioning
+            const label = scene.add.text(centerX - width/2 + 12, y + 8, floorName, {
+                fontSize: '8px',
+                fill: '#00e5ff',
+                fontFamily: 'Courier New, monospace',
+                fontWeight: 'bold'
+            });
+
+            // Create windows with cross pattern detail
+            const windowSpacing = 45;
+            const windowCount = Math.floor((width - 80) / windowSpacing);
+            const windowStartX = centerX - (windowCount * windowSpacing) / 2;
+
+            for (let i = 0; i < windowCount; i++) {
+                const windowX = windowStartX + i * windowSpacing;
+                const windowY = y + height / 2;
+                const isLit = Math.random() > 0.4; // 60% chance of being lit
+                createWindow(scene, windowX, windowY, isLit);
+            }
+
+            // Add floor-specific furniture
+            addFloorFurniture(scene, centerX, y, width, height, floorNum);
+        }
+
+        function createWindow(scene, x, y, isLit) {
+            const graphics = scene.add.graphics();
+
+            // Window background
+            graphics.fillStyle(isLit ? 0xfff59d : 0x1a237e);
+            graphics.fillRect(x - 8, y - 10, 16, 20);
+
+            // Window frame
+            graphics.lineStyle(1, 0x37474f);
+            graphics.strokeRect(x - 8, y - 10, 16, 20);
+
+            // Cross pattern (4 window panes)
+            graphics.lineStyle(1, 0x37474f);
+            // Vertical divider
+            graphics.lineBetween(x, y - 10, x, y + 10);
+            // Horizontal divider
+            graphics.lineBetween(x - 8, y, x + 8, y);
+
+            // Warm glow effect for lit windows
+            if (isLit) {
+                const glow = scene.add.circle(x, y, 12, 0xfff59d, 0.2);
+
+                // Subtle glow animation
+                scene.tweens.add({
+                    targets: glow,
+                    alpha: { from: 0.1, to: 0.3 },
+                    duration: 3000 + Math.random() * 2000,
+                    repeat: -1,
+                    yoyo: true
+                });
+            }
+        }
+
+        function addFloorFurniture(scene, centerX, y, width, height, floorNum) {
+            const furniture = scene.add.graphics();
+
+            switch (floorNum) {
+                case 0: // LOBBY
+                    // Reception desk
+                    createDesk(scene, centerX, y + height - 25, 40, 12, 0x8d6e63);
+                    // Lobby chairs
+                    createChair(scene, centerX - 60, y + height - 20, 0x424242);
+                    createChair(scene, centerX + 60, y + height - 20, 0x424242);
+                    break;
+
+                case 1: // OPS
+                    // Server rack
+                    furniture.fillStyle(0x263238);
+                    furniture.fillRect(centerX + width/3, y + height - 35, 12, 30);
+                    // Server status lights
+                    for (let i = 0; i < 6; i++) {
+                        furniture.fillStyle(Math.random() > 0.5 ? 0x4caf50 : 0xf44336);
+                        furniture.fillCircle(centerX + width/3 + 6, y + height - 30 + i * 4, 1);
+                    }
+                    // Work desks
+                    createDesk(scene, centerX - 40, y + height - 25);
+                    createDesk(scene, centerX + 20, y + height - 25);
+                    break;
+
+                case 2: // SALES
+                    // Sales board
+                    furniture.fillStyle(0x5d4037);
+                    furniture.fillRect(centerX - 50, y + 15, 100, 20);
+                    furniture.lineStyle(1, 0x8d6e63);
+                    furniture.strokeRect(centerX - 50, y + 15, 100, 20);
+                    // Desks
+                    createDesk(scene, centerX - 50, y + height - 25);
+                    createDesk(scene, centerX + 30, y + height - 25);
+                    break;
+
+                case 3: // OUTBOUND
+                    createDesk(scene, centerX - 20, y + height - 25);
+                    // Phone system
+                    furniture.fillStyle(0x37474f);
+                    furniture.fillRect(centerX + 40, y + height - 30, 20, 15);
+                    break;
+
+                case 4: // CONTENT
+                    createDesk(scene, centerX - 30, y + height - 25);
+                    // Bookshelf
+                    createBookshelf(scene, centerX + 60, y + height - 35);
+                    break;
+
+                case 5: // INTEL
+                    // Strategic planning table (oval)
+                    furniture.fillStyle(0x5d4037);
+                    furniture.fillEllipse(centerX, y + height - 20, 80, 25);
+                    furniture.lineStyle(1, 0x8d6e63);
+                    furniture.strokeEllipse(centerX, y + height - 20, 80, 25);
+                    break;
+
+                case 6: // BOARD
+                    // Executive conference table
+                    createConferenceTable(scene, centerX, y + height - 25, 100, 20);
+                    // Executive chairs around table
+                    const chairPositions = [
+                        {x: centerX - 60, y: y + height - 25},
+                        {x: centerX - 30, y: y + height - 40},
+                        {x: centerX + 30, y: y + height - 40},
+                        {x: centerX + 60, y: y + height - 25},
+                        {x: centerX - 30, y: y + height - 10},
+                        {x: centerX + 30, y: y + height - 10}
+                    ];
+                    chairPositions.forEach(pos => {
+                        createChair(scene, pos.x, pos.y, 0x1b5e20);
+                    });
+                    break;
+
+                case 7: // CEO
+                    // Executive desk (larger)
+                    createDesk(scene, centerX, y + height - 25, 50, 16, 0x4e342e);
+                    // Executive chair
+                    createChair(scene, centerX, y + height - 5, 0x1b5e20);
+                    // Executive monitor (larger)
+                    furniture.fillStyle(0x263238);
+                    furniture.fillRect(centerX - 10, y + height - 45, 20, 15);
+                    break;
+            }
+        }
+
+        function createDesk(scene, x, y, w = 30, h = 10, color = 0x5d4037) {
+            const desk = scene.add.graphics();
+
+            // Desktop
+            desk.fillStyle(color);
+            desk.fillRect(x - w/2, y - h/2, w, h);
+
+            // Desktop edge highlight
+            desk.fillStyle(Phaser.Display.Color.Interpolate.ColorWithColor(
+                Phaser.Display.Color.IntegerToColor(color),
+                {r: 255, g: 255, b: 255},
+                100, 20
+            ).color);
+            desk.fillRect(x - w/2, y - h/2, w, 2);
+
+            // Legs
+            desk.fillStyle(0x3e2723);
+            desk.fillRect(x - w/2 + 2, y + h/2, 3, 8);
+            desk.fillRect(x + w/2 - 5, y + h/2, 3, 8);
+
+            // Monitor
+            desk.fillStyle(0x263238);
+            desk.fillRect(x - 6, y - h/2 - 12, 12, 10);
+
+            // Monitor stand
+            desk.fillStyle(0x37474f);
+            desk.fillRect(x - 2, y - h/2, 4, 2);
+        }
+
+        function createChair(scene, x, y, color = 0x424242) {
+            const chair = scene.add.graphics();
+
+            // Seat
+            chair.fillStyle(color);
+            chair.fillRect(x - 6, y - 6, 12, 8);
+
+            // Backrest
+            chair.fillStyle(Phaser.Display.Color.Interpolate.ColorWithColor(
+                Phaser.Display.Color.IntegerToColor(color),
+                {r: 0, g: 0, b: 0},
+                100, 20
+            ).color);
+            chair.fillRect(x - 6, y - 14, 12, 8);
+        }
+
+        function createBookshelf(scene, x, y) {
+            const shelf = scene.add.graphics();
+
+            // Shelf frame
+            shelf.fillStyle(0x5d4037);
+            shelf.fillRect(x - 6, y, 12, 30);
+
+            // Shelves
+            shelf.fillStyle(0x4e342e);
+            for (let i = 0; i < 4; i++) {
+                shelf.fillRect(x - 6, y + i * 8, 12, 1);
+
+                // Books
+                for (let j = 0; j < 8; j++) {
+                    const bookColors = [0xe53935, 0x43a047, 0x1e88e5, 0xfb8c00, 0x8e24aa, 0x00acc1];
+                    shelf.fillStyle(bookColors[j % bookColors.length]);
+                    shelf.fillRect(x - 5 + j * 1.2, y + i * 8 + 1, 1, 6);
+                }
+            }
+        }
+
+        function createConferenceTable(scene, x, y, w, h) {
+            const table = scene.add.graphics();
+
+            // Table top
+            table.fillStyle(0x5d4037);
+            table.fillRect(x - w/2, y - h/2, w, h);
+
+            // Table edge highlight
+            table.fillStyle(0x8d6e63);
+            table.fillRect(x - w/2, y - h/2, w, 2);
+
+            // Table legs
+            table.fillStyle(0x3e2723);
+            const legPositions = [
+                {x: x - w/2 + 8, y: y + h/2},
+                {x: x + w/2 - 8, y: y + h/2}
+            ];
+            legPositions.forEach(leg => {
+                table.fillRect(leg.x - 2, leg.y, 4, 6);
+            });
+        }
+
+        function createRooftop(scene, centerX, y, width) {
+            const roof = scene.add.graphics();
+
+            // Roof structure
+            roof.fillStyle(0x37474f);
+            roof.fillRect(centerX - width/2, y, width, 20);
+
+            // Roof edge
+            roof.fillStyle(0x546e7a);
+            roof.fillRect(centerX - width/2, y, width, 3);
+
+            // Communication array
+            roof.fillStyle(0x90a4ae);
+            roof.fillRect(centerX - 2, y - 25, 4, 25);
+
+            // Satellite dish
+            roof.fillStyle(0xbdbdbd);
+            roof.fillCircle(centerX, y - 30, 8);
+            roof.fillStyle(0x90a4ae);
+            roof.fillCircle(centerX, y - 30, 6);
+
+            // Warning light
+            const warningLight = scene.add.circle(centerX + 20, y - 5, 3, 0xff1744);
+            scene.tweens.add({
+                targets: warningLight,
+                alpha: { from: 1, to: 0.2 },
+                duration: 800,
+                repeat: -1,
+                yoyo: true
+            });
+
+            // Rooftop logo
+            const logo = scene.add.text(centerX, y - 15, 'CONDUIT', {
+                fontSize: '8px',
+                fill: '#00e5ff',
+                fontFamily: 'Courier New, monospace',
+                fontWeight: 'bold'
+            });
+            logo.setOrigin(0.5);
+        }
+
+        function createEntrance(scene, centerX, y, width) {
+            const entrance = scene.add.graphics();
+
+            // Ground level platform
+            entrance.fillStyle(0x455a64);
+            entrance.fillRect(centerX - width/2, y, width, 25);
+
+            // Entrance doors
+            entrance.fillStyle(0x263238);
+            entrance.fillRect(centerX - 20, y - 30, 40, 30);
+
+            // Door frames
+            entrance.lineStyle(2, 0x37474f);
+            entrance.strokeRect(centerX - 20, y - 30, 40, 30);
+
+            // Door handles
+            entrance.fillStyle(0xbdbdbd);
+            entrance.fillCircle(centerX - 8, y - 15, 2);
+            entrance.fillCircle(centerX + 8, y - 15, 2);
+
+            // Entrance sign
+            const entranceSign = scene.add.text(centerX, y - 40, 'CONDUIT AI HEADQUARTERS', {
+                fontSize: '9px',
+                fill: '#00e5ff',
+                fontFamily: 'Courier New, monospace',
+                fontWeight: 'bold'
+            });
+            entranceSign.setOrigin(0.5);
+
+            // Steps
+            entrance.fillStyle(0x546e7a);
+            entrance.fillRect(centerX - 25, y - 5, 50, 5);
+            entrance.fillRect(centerX - 30, y, 60, 5);
+        }
+
+        function createAgents(scene) {
+            agents = []; // Reset agents array
+
+            Object.keys(AGENTS).forEach(agentKey => {
+                const agentData = AGENTS[agentKey];
+                const agent = createAgent(scene, agentData);
+                agents.push(agent);
+            });
+        }
+
+        function createAgent(scene, agentData) {
+            const centerX = config.width / 2;
+            const maxWidth = Math.min(375, config.width - 40);
+            const buildingWidth = maxWidth;
+            const floorHeight = 70;
+            const buildingY = config.height - 120 - (floorHeight * 8);
+
+            // Calculate agent position on their assigned floor
+            const floorY = buildingY + (agentData.floor * floorHeight) + floorHeight - 35;
+            const agentX = centerX + (Math.random() - 0.5) * (buildingWidth - 80);
+
+            // Create agent sprite using Phaser graphics (16x24 pixels exactly)
+            const agentGraphics = scene.add.graphics();
+
+            // Draw precise 16x24 pixel character
+            drawPixelPerson(agentGraphics, 0, 0, agentData);
+
+            // Convert to container for easier manipulation
+            const agentContainer = scene.add.container(agentX, floorY);
+            agentContainer.add(agentGraphics);
+
+            // Add name label
+            const nameText = scene.add.text(0, 16, agentData.name, {
+                fontSize: '7px',
+                fill: agentData.shirtColor,
+                fontFamily: 'Courier New, monospace',
+                fontWeight: 'bold'
+            });
+            nameText.setOrigin(0.5);
+            agentContainer.add(nameText);
+
+            // Make interactive
+            agentContainer.setSize(16, 30);
+            agentContainer.setInteractive();
+            agentContainer.on('pointerdown', () => showAgentPopup(agentData));
+
+            return {
+                sprite: agentContainer,
+                data: agentData,
+                baseY: floorY,
+                bobOffset: Math.random() * Math.PI * 2,
+                speechBubble: null,
+                currentTask: null
+            };
+        }
+
+        function drawPixelPerson(graphics, x, y, agentData) {
+            // 16x24 pixel precise character
+
+            // Shoes (2px high, 6px wide each)
+            graphics.fillStyle(agentData.shoeColor);
+            graphics.fillRect(x - 7, y + 10, 6, 2); // Left shoe
+            graphics.fillRect(x + 1, y + 10, 6, 2);  // Right shoe
+
+            // Pants/Legs (8px high, 14px wide)
+            graphics.fillStyle(agentData.pantsColor);
+            graphics.fillRect(x - 7, y + 2, 14, 8);
+
+            // Shirt/Torso (6px high, 12px wide)
+            graphics.fillStyle(agentData.shirtColor);
+            graphics.fillRect(x - 6, y - 4, 12, 6);
+
+            // Arms (extending from shirt)
+            graphics.fillStyle(agentData.shirtColor);
+            graphics.fillRect(x - 8, y - 2, 2, 4); // Left arm
+            graphics.fillRect(x + 6, y - 2, 2, 4);  // Right arm
+
+            // Hands
+            graphics.fillStyle(agentData.skinColor);
+            graphics.fillRect(x - 8, y + 2, 2, 2); // Left hand
+            graphics.fillRect(x + 6, y + 2, 2, 2);  // Right hand
+
+            // Head (8px wide, 8px high)
+            graphics.fillStyle(agentData.skinColor);
+            graphics.fillRect(x - 4, y - 12, 8, 8);
+
+            // Hair (8px wide, 3px high)
+            graphics.fillStyle(agentData.hairColor);
+            graphics.fillRect(x - 4, y - 15, 8, 3);
+
+            // Eyes (2px each, white with black pupils)
+            graphics.fillStyle(0xffffff);
+            graphics.fillRect(x - 3, y - 10, 2, 2); // Left eye
+            graphics.fillRect(x + 1, y - 10, 2, 2);  // Right eye
+
+            // Eye pupils
+            graphics.fillStyle(0x000000);
+            graphics.fillRect(x - 2, y - 9, 1, 1); // Left pupil
+            graphics.fillRect(x + 2, y - 9, 1, 1);  // Right pupil
+        }
+
+        function moveAgentRandomly(agent) {
+            if (!agent.sprite || !agent.sprite.active) return;
+
+            const centerX = config.width / 2;
+            const maxWidth = Math.min(375, config.width - 40);
+            const buildingWidth = maxWidth;
+            const minX = centerX - buildingWidth/2 + 40;
+            const maxX = centerX + buildingWidth/2 - 40;
+
+            const targetX = Phaser.Math.Between(minX, maxX);
+
+            // Face direction of movement
+            const movingRight = targetX > agent.sprite.x;
+            agent.sprite.scaleX = movingRight ? 1 : -1;
+
+            // Smooth movement animation
+            const scene = game.scene.scenes[0];
+            scene.tweens.add({
+                targets: agent.sprite,
+                x: targetX,
+                duration: 2500 + Math.random() * 1500,
+                ease: 'Power2'
+            });
+        }
+
+        function showSpeechBubble(agent, text) {
+            if (!agent.sprite || !agent.sprite.active) return;
+
+            // Remove existing bubble
+            if (agent.speechBubble) {
+                agent.speechBubble.destroy();
+                agent.speechBubble = null;
+            }
+
+            const scene = game.scene.scenes[0];
+            const bubbleWidth = Math.min(100, text.length * 3 + 20);
+
+            // Create speech bubble container
+            const bubble = scene.add.container(agent.sprite.x, agent.sprite.y - 30);
+
+            // Bubble background
+            const bg = scene.add.graphics();
+            bg.fillStyle(0xffffff, 0.95);
+            bg.fillRoundedRect(-bubbleWidth/2, -12, bubbleWidth, 20, 6);
+            bg.lineStyle(1, 0x424242);
+            bg.strokeRoundedRect(-bubbleWidth/2, -12, bubbleWidth, 20, 6);
+
+            // Speech bubble pointer
+            bg.fillStyle(0xffffff);
+            bg.fillTriangle(0, -2, -4, 6, 4, 6);
+
+            // Bubble text
+            const bubbleText = scene.add.text(0, -2, text, {
+                fontSize: '7px',
+                fill: '#000000',
+                fontFamily: 'Courier New, monospace',
+                align: 'center',
+                wordWrap: { width: bubbleWidth - 8 }
+            });
+            bubbleText.setOrigin(0.5);
+
+            bubble.add([bg, bubbleText]);
+            agent.speechBubble = bubble;
+
+            // Auto-remove after 5 seconds
+            scene.time.delayedCall(5000, () => {
+                if (agent.speechBubble) {
+                    agent.speechBubble.destroy();
+                    agent.speechBubble = null;
+                }
+            });
+        }
+
+        function showAgentPopup(agentData) {
+            const popup = document.getElementById('agentPopup');
+            const content = document.getElementById('popupContent');
+
+            // Filter recent tasks for this agent
+            const recentTasks = activityData
+                .filter(item => item.agent_name === agentData.name)
+                .slice(0, 4);
+
+            let statusColor = '#4caf50';
+            let statusText = 'ACTIVE';
+
+            if (recentTasks.length === 0) {
+                statusColor = '#ff9800';
+                statusText = 'STANDBY';
+            }
+
+            let tasksHtml = `<div style="color: ${statusColor}; margin: 8px 0; font-weight: bold;">● ${statusText}</div>`;
+
+            if (recentTasks.length > 0) {
+                tasksHtml += '<div style="margin-top: 10px; font-size: 9px; color: #00e5ff;">Recent Activity:</div>';
+                recentTasks.forEach(task => {
+                    const timeAgo = getTimeAgo(new Date(task.created_at));
+                    tasksHtml += `<div style="font-size: 8px; color: #b3e5fc; margin: 3px 0; padding: 2px 0; border-bottom: 1px solid #1e2749;">
+                        ${task.action.substring(0, 35)}${task.action.length > 35 ? '...' : ''}
+                        <span style="color: #64b5f6; float: right;">${timeAgo}</span>
+                    </div>`;
+                });
+            }
+
+            content.innerHTML = `
+                <div style="color: ${agentData.shirtColor}; font-weight: bold; margin-bottom: 8px; font-size: 12px;">
+                    ${agentData.name}
+                </div>
+                <div style="color: #90caf9; font-size: 9px; margin-bottom: 8px;">
+                    Role: ${agentData.role}
+                </div>
+                ${tasksHtml}
+            `;
+
+            // Position popup at center of screen
+            popup.style.display = 'block';
+            popup.style.left = '50%';
+            popup.style.top = '50%';
+            popup.style.transform = 'translate(-50%, -50%)';
+        }
+
+        function getTimeAgo(date) {
+            const now = new Date();
+            const diffInSeconds = Math.floor((now - date) / 1000);
+
+            if (diffInSeconds < 60) return 'now';
+            if (diffInSeconds < 3600) return `${Math.floor(diffInSeconds / 60)}m ago`;
+            if (diffInSeconds < 86400) return `${Math.floor(diffInSeconds / 3600)}h ago`;
+            return `${Math.floor(diffInSeconds / 86400)}d ago`;
+        }
+
+        function closePopup() {
+            document.getElementById('agentPopup').style.display = 'none';
+        }
+
+        // Supabase API functions
+        async function fetchActivityData() {
+            try {
+                const response = await fetch(`${SUPABASE_URL}/rest/v1/workforce_activity_log?order=created_at.desc&limit=50`, {
+                    headers: {
+                        'apikey': SUPABASE_ANON_KEY,
+                        'Authorization': `Bearer ${SUPABASE_ANON_KEY}`,
+                        'Content-Type': 'application/json'
+                    }
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    activityData = data;
+                    updateActivityFeed();
+                    updateAgentTasks();
+                    updateHUD();
+                } else {
+                    console.log('API response not ok:', response.status);
+                }
+            } catch (error) {
+                console.error('Error fetching activity data:', error);
+                // Show offline status in HUD
+                document.getElementById('agentCount').textContent = '6 Agents (Offline)';
+            }
+        }
+
+        function updateActivityFeed() {
+            const feedContent = document.getElementById('feedContent');
+
+            if (activityData.length === 0) {
+                feedContent.innerHTML = '<div class="no-data">Waiting for agent activity...</div>';
+                return;
+            }
+
+            let feedHtml = '';
+            const recentItems = activityData.slice(0, 6); // Show latest 6 items
+
+            recentItems.forEach(item => {
+                const timestamp = new Date(item.created_at).toLocaleTimeString('en-US', {
+                    hour: '2-digit',
+                    minute: '2-digit'
+                });
+
+                const agentData = AGENTS[item.agent_name];
+                const agentColor = agentData ? agentData.shirtColor : '#00e5ff';
+
+                feedHtml += `<div class="feed-item">
+                    <span style="color: ${agentColor}; font-weight: bold;">[${item.agent_name}]</span>
+                    ${item.action}
+                    <span style="color: #64b5f6; float: right;">${timestamp}</span>
+                </div>`;
+            });
+
+            feedContent.innerHTML = feedHtml;
+        }
+
+        function updateAgentTasks() {
+            agents.forEach(agent => {
+                // Find most recent activity for this agent
+                const recentActivity = activityData.find(item =>
+                    item.agent_name === agent.data.name
+                );
+
+                if (recentActivity && recentActivity !== agent.currentTask) {
+                    agent.currentTask = recentActivity;
+
+                    // Show speech bubble with recent action
+                    const shortAction = recentActivity.action.length > 25
+                        ? recentActivity.action.substring(0, 25) + '...'
+                        : recentActivity.action;
+
+                    showSpeechBubble(agent, shortAction);
+                }
+            });
+        }
+
+        function updateHUD() {
+            // Update time
+            document.getElementById('currentTime').textContent = new Date().toLocaleTimeString('en-US', {
+                hour: '2-digit',
+                minute: '2-digit'
+            });
+
+            // Update agent count
+            const activeAgents = activityData.length > 0
+                ? new Set(activityData.map(item => item.agent_name)).size
+                : 6;
+
+            document.getElementById('agentCount').textContent = `${activeAgents} Agents Online`;
+        }
+
+        function startDataFetching() {
+            // Initial fetch
+            fetchActivityData();
+
+            // Set up recurring fetches every 30 seconds
+            setInterval(fetchActivityData, 30000);
+
+            // Update HUD every second
+            setInterval(updateHUD, 1000);
+        }
+
+        // Window resize handler
+        window.addEventListener('resize', () => {
+            if (game) {
+                game.scale.resize(window.innerWidth, window.innerHeight);
+            }
+        });
+
+        // Initialize the game
+        window.addEventListener('load', () => {
+            game = new Phaser.Game(config);
+        });
+    </script>
 </body>
 </html>
