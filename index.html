@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Conduit AI HQ</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+:root{--bg:#07080c;--bg2:#0c0e14;--bg3:#10131a;--border:rgba(0,240,255,0.08);--cyan:#00e5ff;--green:#00e676;--orange:#ff9100;--red:#ff1744;--purple:#b388ff;--pink:#ff4081;--yellow:#ffd740;--text:#e0e6ed;--text2:#8892a4;--text3:#505868;--glass:rgba(12,14,20,0.75)}
+html,body{height:100%;overflow:hidden;background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif}
+.app{display:grid;grid-template-columns:220px 1fr 260px;grid-template-rows:48px 1fr;height:100vh}
+.top{grid-column:1/-1;background:var(--bg2);display:flex;align-items:center;padding:0 16px;gap:12px;border-bottom:1px solid var(--border)}
+.logo{font-family:monospace;font-weight:700;font-size:13px;letter-spacing:3px;color:var(--cyan)}
+.logo span{color:var(--text3);font-weight:400;font-size:10px;margin-left:8px;letter-spacing:1px}
+.badge{padding:2px 8px;border-radius:4px;font-size:9px;font-weight:600;letter-spacing:1px;font-family:monospace;background:rgba(0,230,118,0.1);color:var(--green);border:1px solid rgba(0,230,118,0.2)}
+.clock{margin-left:auto;font-family:monospace;font-size:11px;color:var(--text2)}
+.left{background:var(--bg2);overflow-y:auto;border-right:1px solid var(--border);padding-top:8px}
+.main{background:var(--bg);position:relative;overflow:hidden}
+.right{background:var(--bg2);overflow-y:auto;border-left:1px solid var(--border)}
+::-webkit-scrollbar{width:3px}
+::-webkit-scrollbar-thumb{background:var(--border);border-radius:3px}
+.sec{font-family:monospace;font-size:8px;letter-spacing:2px;color:var(--text3);padding:12px 12px 6px;text-transform:uppercase}
+.ac{display:flex;align-items:center;gap:8px;padding:8px 12px;cursor:pointer;border-left:2px solid transparent;transition:all 0.2s}
+.ac:hover{background:rgba(0,229,255,0.03);border-left-color:var(--cyan)}
+.ac .av{width:30px;height:30px;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;flex-shrink:0}
+.ac .nm{font-family:monospace;font-size:10px;font-weight:600;letter-spacing:1px}
+.ac .rl{font-size:9px;color:var(--text2)}
+.dot{width:6px;height:6px;border-radius:50%;margin-left:auto;flex-shrink:0}
+.dot.on{background:var(--green);box-shadow:0 0 6px var(--green)}
+.dot.idle{background:var(--text3)}
+.room{position:absolute;border:1px solid var(--border);border-radius:10px;background:var(--glass);transition:all 0.3s}
+.room:hover{border-color:rgba(0,229,255,0.15)}
+.room-l{position:absolute;top:6px;left:10px;font-family:monospace;font-size:7px;letter-spacing:1.5px;color:var(--text3);text-transform:uppercase}
+.agt{position:absolute;transition:all 2.5s cubic-bezier(0.25,0.1,0.25,1);z-index:10}
+.agt .body{width:28px;height:28px;border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;cursor:pointer;position:relative;transition:transform 0.2s}
+.agt .body:hover{transform:scale(1.25)}
+.agt .tag{font-family:monospace;font-size:7px;text-align:center;color:var(--text2);margin-top:1px;letter-spacing:0.5px}
+.agt .ping{position:absolute;top:-2px;right:-2px;width:7px;height:7px;border-radius:50%;background:var(--green);box-shadow:0 0 6px var(--green);opacity:0;transition:opacity 0.3s}
+.agt .ping.on{opacity:1}
+.agt .bub{position:absolute;bottom:36px;left:50%;transform:translateX(-50%);background:var(--bg2);border:1px solid var(--border);border-radius:6px;padding:3px 7px;font-size:8px;white-space:nowrap;max-width:150px;overflow:hidden;text-overflow:ellipsis;color:var(--text);opacity:0;transition:opacity 0.3s;pointer-events:none}
+.agt .bub.show{opacity:1}
+.ft{font-family:monospace;font-size:8px;letter-spacing:1.5px;color:var(--text3);padding:10px 10px 6px;text-transform:uppercase;border-bottom:1px solid var(--border)}
+.fi{padding:8px 10px;border-bottom:1px solid rgba(255,255,255,0.02);animation:fin 0.3s ease-out}
+@keyframes fin{from{opacity:0;transform:translateY(-5px)}to{opacity:1;transform:translateY(0)}}
+.fi .fn{font-family:monospace;font-size:9px;font-weight:600;letter-spacing:0.5px}
+.fi .fx{font-size:10px;color:var(--text2);margin-top:2px;line-height:1.4}
+.fi .tm{font-family:monospace;font-size:8px;color:var(--text3);float:right}
+.sv{display:inline-block;width:4px;height:4px;border-radius:50%;margin-right:3px}
+.sv-i{background:var(--cyan)}.sv-w{background:var(--orange)}.sv-c{background:var(--red)}
+.qb{margin:4px 8px;padding:7px;background:rgba(0,229,255,0.04);border:1px solid rgba(0,229,255,0.1);border-radius:6px;color:var(--cyan);font-family:monospace;font-size:8px;letter-spacing:1px;cursor:pointer;text-align:center;transition:all 0.2s;width:calc(100% - 16px)}
+.qb:hover{background:rgba(0,229,255,0.08)}
+.qb.g{background:rgba(0,230,118,0.04);border-color:rgba(0,230,118,0.1);color:var(--green)}
+.qb.g:hover{background:rgba(0,230,118,0.08)}
+.qb.p{background:rgba(179,136,255,0.04);border-color:rgba(179,136,255,0.1);color:var(--purple)}
+.qb.p:hover{background:rgba(179,136,255,0.08)}
+.stats{padding:0 12px}
+.stat{display:flex;justify-content:space-between;padding:5px 0;font-size:10px}
+.stat span:last-child{font-family:monospace}
+@media(max-width:900px){.app{grid-template-columns:1fr;grid-template-rows:48px 1fr 200px}.left{display:none}.right{max-height:200px}}
+</style>
+</head>
+<body>
+<div class="app">
+<div class="top">
+<div class="logo">CONDUIT AI <span>HQ COMMAND CENTER</span></div>
+<span class="badge">6 AGENTS ONLINE</span>
+<span class="clock" id="ck">--:--</span>
+</div>
+<div class="left">
+<div class="sec">Workforce roster</div>
+<div id="roster"></div>
+<div class="sec" style="margin-top:10px">Commands</div>
+<button class="qb" onclick="standup()">CALL STANDUP</button>
+<button class="qb g" onclick="health()">HEALTH CHECK</button>
+<button class="qb p" onclick="meeting()">BOARD MEETING</button>
+<div class="sec" style="margin-top:10px">Metrics</div>
+<div class="stats">
+<div class="stat"><span style="color:var(--text2)">Tasks today</span><span style="color:var(--cyan)" id="mt">0</span></div>
+<div class="stat"><span style="color:var(--text2)">Alerts</span><span style="color:var(--orange)" id="ma">0</span></div>
+<div class="stat"><span style="color:var(--text2)">Calls made</span><span style="color:var(--green)" id="mc">0</span></div>
+<div class="stat"><span style="color:var(--text2)">Prospects</span><span style="color:var(--yellow)" id="mp">0</span></div>
+</div>
+</div>
+<div class="main" id="floor"></div>
+<div class="right">
+<div class="ft">Live activity feed</div>
+<div id="feed"></div>
+</div>
+</div>
+<script>
+var AG=[
+{n:'HUNTER',i:'\uD83C\uDFAF',r:'Director of Prospecting',c:'#ff9100',b:'rgba(255,145,0,0.08)',h:'sales'},
+{n:'CLOSER',i:'\uD83D\uDCE7',r:'Director of Outreach',c:'#b388ff',b:'rgba(179,136,255,0.08)',h:'sales'},
+{n:'STRIKER',i:'\uD83D\uDCDE',r:'Director of Outbound',c:'#00e676',b:'rgba(0,230,118,0.08)',h:'sales'},
+{n:'SCOUT',i:'\uD83D\uDD2D',r:'Director of Intelligence',c:'#00e5ff',b:'rgba(0,229,255,0.08)',h:'intel'},
+{n:'SAGE',i:'\u270D\uFE0F',r:'Director of Content',c:'#ffd740',b:'rgba(255,215,64,0.08)',h:'content'},
+{n:'WATCHDOG',i:'\uD83D\uDC15',r:'Director of Operations',c:'#ff4081',b:'rgba(255,64,129,0.08)',h:'ops'}
+];
+var RM=[
+{id:'sales',l:'Sales floor',x:3,y:3,w:55,h:30},
+{id:'intel',l:'Intelligence center',x:62,y:3,w:35,h:30},
+{id:'content',l:'Content studio',x:3,y:37,w:32,h:28},
+{id:'ops',l:'Operations',x:39,y:37,w:28,h:28},
+{id:'ceo',l:'CEO office \u2014 Luis Garcia',x:71,y:37,w:26,h:28},
+{id:'board',l:'Boardroom',x:3,y:69,w:50,h:27},
+{id:'lobby',l:'Lobby',x:57,y:69,w:40,h:27}
+];
+var ACT={
+HUNTER:['Scraping barbershops in Miami...','Found 12 prospects in Fort Lauderdale','Qualifying HVAC companies in Tampa','Building list for Dallas salons','Researching nail salons in Boca'],
+CLOSER:['Drafting email for Miami barbershop','Personalizing HVAC outreach','Loading 5 leads into Instantly','Follow-up for warm lead','Writing salon campaign subject lines'],
+STRIKER:['Dialing prospect in West Palm...','Call done \u2014 warm interest','Standing by for business hours','Prepping script for HVAC lead','Reviewing call recordings'],
+SCOUT:['Analyzing Smith.ai pricing','Researching Ruby reviews','Comparing AI voice competitors','TAM report: 2.1M businesses','Studying Nexa complaints'],
+SAGE:['Writing: AI for Barbershops','Publishing post to GitHub','Vercel Analytics: 42 visits today','Optimizing SEO meta tags','Drafting social media post'],
+WATCHDOG:['Backend: 200 OK (138ms)','conduitai.io: healthy','Vapi balance: monitoring','Stripe: checking subs','Supabase: 12ms avg query']
+};
+var CHAT=[
+['HUNTER','CLOSER','Got 8 new prospects ready','Drafting emails now'],
+['WATCHDOG','SCOUT','Systems stable. Intel?','Smith.ai raised prices. Good for us.'],
+['SAGE','HUNTER','HVAC post is ranking. More prospects?','On it, searching Tampa now'],
+['STRIKER','CLOSER','3 calls done. 1 warm lead.','Will draft follow-up email'],
+['SCOUT','SAGE','Competitors weak on salon content','Writing salon post now'],
+['WATCHDOG','STRIKER','Vapi balance OK. Clear to call.','Roger, dialing next']
+];
+var fl=document.getElementById('floor'),fd=document.getElementById('feed'),rs=document.getElementById('roster');
+var els={},tc=0,ac=0,cc=0,pc=0;
+RM.forEach(function(r){var d=document.createElement('div');d.className='room';d.style.cssText='left:'+r.x+'%;top:'+r.y+'%;width:'+r.w+'%;height:'+r.h+'%';d.innerHTML='<div class="room-l">'+r.l+'</div>';fl.appendChild(d)});
+AG.forEach(function(a){
+var c=document.createElement('div');c.className='ac';c.innerHTML='<div class="av" style="background:'+a.b+';border:1px solid '+a.c+'30">'+a.i+'</div><div><div class="nm" style="color:'+a.c+'">'+a.n+'</div><div class="rl">'+a.r+'</div></div><div class="dot idle" id="d-'+a.n+'"></div>';rs.appendChild(c);
+var rm=RM.find(function(r){return r.id===a.h}),rx=rm.x+5+Math.random()*(rm.w-15),ry=rm.y+8+Math.random()*(rm.h-16);
+var e=document.createElement('div');e.className='agt';e.style.cssText='left:'+rx+'%;top:'+ry+'%';e.innerHTML='<div class="bub" id="b-'+a.n+'"></div><div class="body" style="background:'+a.b+';border:1px solid '+a.c+'30">'+a.i+'<div class="ping" id="p-'+a.n+'"></div></div><div class="tag">'+a.n+'</div>';fl.appendChild(e);els[a.n]=e;
+});
+function addF(agent,text,sev){
+var t=new Date().toLocaleTimeString('en-US',{hour:'2-digit',minute:'2-digit',hour12:true});
+var a=AG.find(function(x){return x.n===agent});
+var d=document.createElement('div');d.className='fi';d.innerHTML='<span class="tm">'+t+'</span><div class="fn">'+(a?a.i:'\u26A1')+' '+agent+'</div><div class="fx"><span class="sv sv-'+sev+'"></span>'+text+'</div>';
+fd.insertBefore(d,fd.firstChild);if(fd.children.length>40)fd.removeChild(fd.lastChild);
+tc++;document.getElementById('mt').textContent=tc;
+}
+function bub(n,t){var b=document.getElementById('b-'+n);if(!b)return;b.textContent=t;b.classList.add('show');setTimeout(function(){b.classList.remove('show')},3000)}
+function move(n){var a=AG.find(function(x){return x.n===n}),e=els[n];if(!a||!e)return;var go=Math.random()>0.15,tid=go?a.h:RM[Math.floor(Math.random()*RM.length)].id,rm=RM.find(function(r){return r.id===tid});if(!rm)return;e.style.left=rm.x+5+Math.random()*(rm.w-15)+'%';e.style.top=rm.y+8+Math.random()*(rm.h-16)+'%'}
+function work(n){var acts=ACT[n];if(!acts)return;var t=acts[Math.floor(Math.random()*acts.length)];var p=document.getElementById('p-'+n),d=document.getElementById('d-'+n);if(p)p.classList.add('on');if(d){d.classList.remove('idle');d.classList.add('on')}bub(n,t);addF(n,t,t.includes('Standing by')||t.includes('0')?'w':'i');
+if(n==='HUNTER')pc+=Math.floor(Math.random()*3);if(n==='STRIKER')cc+=Math.random()>0.5?1:0;
+document.getElementById('mp').textContent=pc;document.getElementById('mc').textContent=cc;
+setTimeout(function(){if(p)p.classList.remove('on');if(d){d.classList.remove('on');d.classList.add('idle')}},3000)}
+function chat(){var p=CHAT[Math.floor(Math.random()*CHAT.length)];bub(p[0],p[2]);addF(p[0],p[2],'i');setTimeout(function(){bub(p[1],p[3]);addF(p[1],p[3],'i')},1500)}
+function standup(){addF('SYSTEM','STANDUP CALLED \u2014 All agents reporting...','i');AG.forEach(function(a,i){setTimeout(function(){var msgs={HUNTER:'Pipeline: 12 new prospects found today',CLOSER:'5 personalized emails drafted and queued',STRIKER:'2 calls completed, 1 warm lead',SCOUT:'Competitive brief: Smith.ai raised prices 15%',SAGE:'Blog post published, 42 site visits today',WATCHDOG:'All systems green. Backend 138ms.'};addF(a.n,msgs[a.n]||'Standing by','i');bub(a.n,msgs[a.n]);},(i+1)*800)})}
+function health(){addF('WATCHDOG','Running full health check...','i');var checks=[['Backend: 200 OK (138ms)',1],['conduitai.io: 200 OK',1.5],['Supabase: healthy',2],['Vapi: balance OK',2.5],['Stripe: connected',3],['All systems operational',3.5]];checks.forEach(function(c){setTimeout(function(){addF('WATCHDOG',c[0],'i');bub('WATCHDOG',c[0])},c[1]*1000)})}
+function meeting(){addF('SYSTEM','BOARD MEETING \u2014 All directors reporting...','i');var script=[{a:'HUNTER',t:'Found 23 prospects this week across 4 cities. Top vertical: barbershops.'},{a:'CLOSER',t:'15 personalized emails sent. 3 replies, 1 hot lead requesting demo.'},{a:'STRIKER',t:'8 outbound calls made. 2 warm leads. Best response from HVAC companies.'},{a:'SCOUT',t:'Smith.ai raised prices 15%. Ruby has bad reviews on hold times. We win on price and speed.'},{a:'SAGE',t:'2 blog posts published. Site traffic up 12%. Top keyword: ai receptionist.'},{a:'WATCHDOG',t:'99.8% uptime this week. Vapi balance stable. No critical incidents.'}];script.forEach(function(s,i){setTimeout(function(){addF(s.a,s.t,'i');bub(s.a,s.t.substring(0,40)+'...')},i*1500)})}
+addF('SYSTEM','Conduit AI Workforce v2 \u2014 ONLINE','i');AG.forEach(function(a,i){setTimeout(function(){addF(a.n,'Online and reporting for duty','i')},(i+1)*300)});
+AG.forEach(function(a){(function run(){work(a.n);setTimeout(run,4000+Math.random()*8000)})()});
+setInterval(function(){move(AG[Math.floor(Math.random()*AG.length)].n)},3500);
+setInterval(chat,11000);
+setInterval(function(){document.getElementById('ck').textContent=new Date().toLocaleTimeString('en-US',{timeZone:'America/New_York',hour:'2-digit',minute:'2-digit',second:'2-digit',hour12:true})+' EST'},1000);
+</script>
+</body>
+</html>
