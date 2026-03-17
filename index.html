@@ -84,6 +84,11 @@
             white-space: nowrap;
         }
 
+        .no-data {
+            color: #666;
+            font-style: italic;
+        }
+
         .agent-popup {
             position: absolute;
             background: rgba(20, 25, 40, 0.95);
@@ -137,7 +142,9 @@
 
         <div id="activityFeed">
             <div class="feed-title">LIVE FEED</div>
-            <div class="feed-content" id="feedContent"></div>
+            <div class="feed-content" id="feedContent">
+                <div class="no-data">Waiting for agent activity...</div>
+            </div>
         </div>
 
         <div id="agentPopup" class="agent-popup">
@@ -185,6 +192,20 @@
                 shirtColor: 0xff4081, skinColor: 0x8a6040, pantsColor: 0x2a1520, hairColor: 0x1a0510
             }
         };
+
+        // Get responsive building dimensions
+        function getBuildingDimensions() {
+            const screenWidth = config.width;
+            let buildingWidth;
+
+            if (screenWidth <= 375) { // Mobile
+                buildingWidth = Math.min(360, screenWidth - 16); // 8px margins on each side
+            } else {
+                buildingWidth = Math.min(500, screenWidth * 0.8);
+            }
+
+            return { width: buildingWidth };
+        }
 
         // Game configuration
         const config = {
@@ -246,6 +267,8 @@
             // Handle window resize
             this.scale.on('resize', (gameSize) => {
                 this.cameras.main.setViewport(0, 0, gameSize.width, gameSize.height);
+                // Recreate building with new dimensions
+                this.scene.restart();
             });
         }
 
@@ -294,7 +317,8 @@
 
         function createBuilding(scene) {
             const centerX = config.width / 2;
-            const buildingWidth = 500;
+            const dimensions = getBuildingDimensions();
+            const buildingWidth = dimensions.width;
             const floorHeight = 80;
             const floors = 8; // Ground + 7 floors
             const totalHeight = floorHeight * floors;
@@ -311,12 +335,12 @@
             building.fillStyle(0x141a30);
             building.fillRect(centerX - buildingWidth/2 - 4, buildingY, 4, totalHeight);
 
-            // Building border
-            building.lineStyle(2, 0x333a55);
+            // Building border - FIXED: subtle 1px border
+            building.lineStyle(1, 0x333a55);
             building.strokeRect(centerX - buildingWidth/2, buildingY, buildingWidth, totalHeight);
 
-            // Create floors
-            const floorNames = ['GROUND', 'OPERATIONS', 'PROSPECTING', 'OUTBOUND', 'CONTENT', 'INTEL', 'BOARD', 'CEO'];
+            // Create floors with short labels
+            const floorNames = ['LOBBY', 'OPS', 'SALES', 'OUTBOUND', 'CONTENT', 'INTEL', 'BOARD', 'CEO'];
 
             for (let floor = 0; floor < floors; floor++) {
                 const y = buildingY + floor * floorHeight;
@@ -327,36 +351,38 @@
             building.fillStyle(0x3a3a4a);
             building.fillRect(centerX - buildingWidth/2, buildingY + totalHeight, buildingWidth, 20);
 
-            // Entrance door
+            // FIXED: Simple centered entrance door
             building.fillStyle(0x2a2a3a);
-            building.fillRect(centerX - 15, buildingY + totalHeight - 40, 30, 40);
+            building.fillRect(centerX - 15, buildingY + totalHeight - 25, 30, 25);
 
             // Door handles
             building.fillStyle(0x888888);
-            building.fillCircle(centerX - 8, buildingY + totalHeight - 20, 2);
-            building.fillCircle(centerX + 8, buildingY + totalHeight - 20, 2);
+            building.fillCircle(centerX - 8, buildingY + totalHeight - 12, 1);
+            building.fillCircle(centerX + 8, buildingY + totalHeight - 12, 1);
 
             // "CONDUIT AI" text above entrance
-            const entranceText = scene.add.text(centerX, buildingY + totalHeight - 50, 'CONDUIT AI', {
-                fontSize: '12px',
+            const entranceText = scene.add.text(centerX, buildingY + totalHeight - 35, 'CONDUIT AI', {
+                fontSize: '10px',
                 fill: '#00e5ff',
                 fontFamily: 'Courier New'
             });
             entranceText.setOrigin(0.5);
 
             // Trees
-            createTree(scene, centerX - buildingWidth/2 - 30, buildingY + totalHeight + 10);
-            createTree(scene, centerX + buildingWidth/2 + 30, buildingY + totalHeight + 10);
+            if (buildingWidth > 350) { // Only show trees if there's space
+                createTree(scene, centerX - buildingWidth/2 - 25, buildingY + totalHeight + 10);
+                createTree(scene, centerX + buildingWidth/2 + 25, buildingY + totalHeight + 10);
+            }
 
-            // Roof elements
-            const roofY = buildingY - 20;
+            // FIXED: Roof elements - centered
+            const roofY = buildingY - 25;
 
-            // Antenna
+            // Antenna (centered)
             building.fillStyle(0x888888);
-            building.fillRect(centerX + 100, roofY - 15, 2, 15);
+            building.fillRect(centerX - 1, roofY - 15, 2, 15);
 
-            // Blinking light
-            const light = scene.add.circle(centerX + 101, roofY - 17, 2, 0xff0000);
+            // Blinking light (centered)
+            const light = scene.add.circle(centerX, roofY - 18, 2, 0xff0000);
             scene.tweens.add({
                 targets: light,
                 alpha: { from: 1, to: 0.3 },
@@ -365,7 +391,7 @@
                 yoyo: true
             });
 
-            // Roof text
+            // FIXED: Roof text (centered and clearly visible)
             const roofText = scene.add.text(centerX, roofY - 8, 'CONDUIT AI', {
                 fontSize: '10px',
                 fill: '#00e5ff',
@@ -387,20 +413,25 @@
             building.lineStyle(2, 0x4a505a);
             building.lineBetween(centerX - width/2, y + height, centerX + width/2, y + height);
 
-            // Floor label
-            const label = scene.add.text(centerX - width/2 + 10, y + 5, floorName, {
-                fontSize: '10px',
+            // FIXED: Floor label inside building with padding
+            const labelPadding = width <= 360 ? 15 : 20;
+            const label = scene.add.text(centerX - width/2 + labelPadding, y + 5, floorName, {
+                fontSize: '8px',
                 fill: '#00e5ff',
                 fontFamily: 'Courier New'
             });
 
-            // Windows (6 per floor)
-            for (let i = 0; i < 6; i++) {
-                const windowX = centerX - width/2 + 60 + i * 65;
-                const windowY = y + height/2;
-                const isLit = Math.random() > 0.3;
+            // Windows (6 per floor, adjusted for width)
+            const windowSpacing = Math.min(65, (width - 120) / 5);
+            const windowStart = centerX - width/2 + 60;
 
-                createWindow(scene, windowX, windowY, isLit);
+            for (let i = 0; i < 6; i++) {
+                const windowX = windowStart + i * windowSpacing;
+                if (windowX < centerX + width/2 - 30) { // Only show if within bounds
+                    const windowY = y + height/2;
+                    const isLit = Math.random() > 0.3;
+                    createWindow(scene, windowX, windowY, isLit);
+                }
             }
 
             // Add furniture based on floor
@@ -431,64 +462,110 @@
             const furniture = scene.add.graphics();
 
             switch (floorNum) {
+                case 0: // FIXED: Lobby - simple front desk
+                    furniture.fillStyle(0x8b4513);
+                    furniture.fillRect(centerX - 15, y + height - 20, 30, 8);
+                    break;
+
                 case 1: // Operations
                     // Server rack
                     furniture.fillStyle(0x2a2a2a);
-                    furniture.fillRect(centerX + 180, y + height - 40, 15, 40);
+                    furniture.fillRect(centerX + Math.min(150, width/2 - 50), y + height - 40, 15, 40);
                     // Server lights
                     for (let i = 0; i < 8; i++) {
                         furniture.fillStyle(i % 2 ? 0x00ff00 : 0xff0000);
-                        furniture.fillCircle(centerX + 185, y + height - 35 + i * 4, 1);
+                        furniture.fillCircle(centerX + Math.min(157, width/2 - 43), y + height - 35 + i * 4, 1);
                     }
-                    // 3 desks
-                    for (let i = 0; i < 3; i++) {
-                        createDesk(scene, centerX - 120 + i * 80, y + height - 25);
+                    // 2 desks (adjusted for width)
+                    if (width > 300) {
+                        createDesk(scene, centerX - 60, y + height - 25);
+                        createDesk(scene, centerX + 20, y + height - 25);
+                    } else {
+                        createDesk(scene, centerX, y + height - 25);
                     }
                     break;
+
                 case 2: // Prospecting
                     // Sales board
                     furniture.fillStyle(0x8b4513);
-                    furniture.fillRect(centerX - 100, y + 20, 80, 8);
+                    furniture.fillRect(centerX - Math.min(80, width/2 - 20), y + 20, Math.min(80, width/2 - 20), 8);
                     // 2 desks
-                    createDesk(scene, centerX - 60, y + height - 25);
-                    createDesk(scene, centerX + 20, y + height - 25);
+                    if (width > 300) {
+                        createDesk(scene, centerX - 60, y + height - 25);
+                        createDesk(scene, centerX + 20, y + height - 25);
+                    } else {
+                        createDesk(scene, centerX, y + height - 25);
+                    }
                     break;
+
                 case 3: // Outbound Sales
                     createDesk(scene, centerX, y + height - 25);
                     // Phone on desk
                     furniture.fillStyle(0x1a1a1a);
                     furniture.fillRect(centerX + 8, y + height - 30, 6, 4);
                     break;
+
                 case 4: // Content & SEO
                     createDesk(scene, centerX - 20, y + height - 25);
                     // Bookshelf
-                    createBookshelf(scene, centerX + 100, y + height - 40);
+                    if (width > 300) {
+                        createBookshelf(scene, centerX + 80, y + height - 40);
+                    }
                     break;
+
                 case 5: // Intelligence
                     // War room table
                     furniture.fillStyle(0x8b4513);
-                    furniture.fillEllipse(centerX, y + height - 20, 80, 20);
+                    furniture.fillEllipse(centerX, y + height - 20, Math.min(80, width - 100), 20);
                     break;
-                case 6: // Boardroom
-                    // Conference table
+
+                case 6: // FIXED: Boardroom - rectangular table with proper chairs
+                    // Clean rectangular conference table
                     furniture.fillStyle(0x8b4513);
-                    furniture.fillEllipse(centerX, y + height - 20, 100, 30);
-                    // Chairs around table
-                    for (let i = 0; i < 8; i++) {
-                        const angle = (i / 8) * Math.PI * 2;
-                        createChair(scene,
-                            centerX + Math.cos(angle) * 40,
-                            y + height - 20 + Math.sin(angle) * 12
-                        );
-                    }
+                    furniture.fillRect(centerX - 50, y + height - 28, 100, 16);
+
+                    // Lighter table edge
+                    furniture.fillStyle(0x9b5523);
+                    furniture.fillRect(centerX - 50, y + height - 28, 100, 2);
+
+                    // 6 chairs evenly spaced around table
+                    const chairPositions = [
+                        // Left side chairs
+                        { x: centerX - 60, y: y + height - 25 },
+                        { x: centerX - 60, y: y + height - 15 },
+                        { x: centerX - 60, y: y + height - 5 },
+                        // Right side chairs
+                        { x: centerX + 60, y: y + height - 25 },
+                        { x: centerX + 60, y: y + height - 15 },
+                        { x: centerX + 60, y: y + height - 5 }
+                    ];
+
+                    chairPositions.forEach(pos => {
+                        furniture.fillStyle(0x2a2050);
+                        furniture.fillRect(pos.x - 4, pos.y - 4, 8, 8);
+                    });
                     break;
-                case 7: // CEO Suite
-                    // Executive desk
+
+                case 7: // FIXED: CEO Suite - minimal and premium
+                    // Executive desk (wider than normal)
                     furniture.fillStyle(0x8b4513);
-                    furniture.fillRect(centerX - 20, y + height - 30, 40, 20);
-                    // Trophy case
-                    furniture.fillStyle(0xffd700);
-                    furniture.fillRect(centerX + 80, y + height - 35, 30, 35);
+                    furniture.fillRect(centerX - 20, y + height - 32, 40, 14);
+
+                    // Desktop edge (lighter)
+                    furniture.fillStyle(0x9b5523);
+                    furniture.fillRect(centerX - 20, y + height - 32, 40, 2);
+
+                    // Computer monitor
+                    furniture.fillStyle(0x87ceeb);
+                    furniture.fillRect(centerX - 6, y + height - 38, 12, 10);
+
+                    // Monitor stand
+                    furniture.fillStyle(0x3a3a3a);
+                    furniture.fillRect(centerX - 2, y + height - 28, 4, 3);
+
+                    // Executive chair
+                    furniture.fillStyle(0x2a2050);
+                    furniture.fillRect(centerX - 6, y + height - 10, 12, 12);
                     break;
             }
         }
@@ -576,7 +653,8 @@
 
         function createAgent(scene, agentData) {
             const centerX = config.width / 2;
-            const buildingWidth = 500;
+            const dimensions = getBuildingDimensions();
+            const buildingWidth = dimensions.width;
             const floorHeight = 80;
             const buildingY = config.height - 100 - floorHeight * 8;
 
@@ -618,8 +696,17 @@
 
             agentContainer.add(character);
 
+            // FIXED: Add agent name below character
+            const nameText = scene.add.text(0, 15, agentData.name, {
+                fontSize: '7px',
+                fill: '#00e5ff',
+                fontFamily: 'Courier New'
+            });
+            nameText.setOrigin(0.5);
+            agentContainer.add(nameText);
+
             // Make interactive
-            agentContainer.setSize(12, 20);
+            agentContainer.setSize(12, 35);
             agentContainer.setInteractive();
             agentContainer.on('pointerdown', () => showAgentPopup(agentData));
 
@@ -638,7 +725,8 @@
             if (!agent.sprite) return;
 
             const centerX = config.width / 2;
-            const buildingWidth = 500;
+            const dimensions = getBuildingDimensions();
+            const buildingWidth = dimensions.width;
             const minX = centerX - buildingWidth/2 + 50;
             const maxX = centerX + buildingWidth/2 - 50;
 
@@ -746,7 +834,7 @@
             document.getElementById('agentPopup').style.display = 'none';
         }
 
-        // Supabase functions (unchanged)
+        // Supabase functions
         async function fetchActivityData() {
             try {
                 const response = await fetch(`${SUPABASE_URL}/rest/v1/workforce_activity_log?order=created_at.desc&limit=50`, {
@@ -775,10 +863,16 @@
             }
         }
 
+        // FIXED: Activity feed with fallback message
         function updateActivityFeed() {
             const feedContent = document.getElementById('feedContent');
-            let feedHtml = '';
 
+            if (activityData.length === 0) {
+                feedContent.innerHTML = '<div class="no-data">Waiting for agent activity...</div>';
+                return;
+            }
+
+            let feedHtml = '';
             activityData.slice(0, 8).forEach(item => {
                 const time = new Date(item.created_at).toLocaleTimeString('en-US', {
                     hour: '2-digit',
